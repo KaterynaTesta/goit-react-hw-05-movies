@@ -10,8 +10,8 @@ import Navigation from "./Components/Navigation/Navigation";
 const HomeView = lazy(() =>
   import("./views/HomeView" /* webpackChunkName: 'HomePage' */)
 );
-const MoviesPage = lazy(() =>
-  import("./views/MoviesPage" /* webpackChunkName: 'MoviesPage' */)
+const MoviesView = lazy(() =>
+  import("./views/MoviesPage.js" /* webpackChunkName: 'MoviesPage' */)
 );
 const MovieDetailsPage = lazy(() =>
   import(
@@ -42,9 +42,9 @@ export default function App() {
             <HomeView />
           </Route>
           <Route path="/movies" exact>
-            <MoviesPage />
+            <MoviesView />
           </Route>
-          <Route path="/movies/:slug">
+          <Route path="/movies/:movieId">
             <MovieDetailsPage />
           </Route>
           <Route>

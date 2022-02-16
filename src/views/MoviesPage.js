@@ -1,71 +1,60 @@
 import { useState, useEffect } from "react";
-import { Link, useRouteMatch, useLocation, useHistory } from "react-router-dom";
-import { getMovieByQuery } from "../services/movies-api";
+import { Link, useRouteMatch, useHistory, useLocation } from "react-router-dom";
+import { fetchMovies } from "../services/movies-api";
 import s from "./Movies.module.css";
 import { ImSearch } from "react-icons/im";
-
 export default function MoviesView() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const location = useLocation();
-  const history = useHistory();
+  // const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState(null);
   const { url } = useRouteMatch();
-  const query = new URLSearchParams(location.search).get("query");
-  var slugify = require("slugify");
-
-  useEffect(() => {
-    if (!query) return;
-
-    getMovieByQuery(query).then(({ results }) => setMovies(results));
-  }, [query]);
-
-  const handleInputChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
+  const history = useHistory();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search).get("query") ?? "";
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    searchQuery.trim().length > 0 &&
-      getMovieByQuery(searchQuery).then(({ results }) => setMovies(results));
-    history.push({
-      ...location,
-      search: `query=${searchQuery}`,
-    });
-    setSearchQuery("");
+    const queryInput = e.target.elements.query.value.toLowerCase();
+    if (!queryInput.trim()) {
+      alert("Enter query");
+      return;
+    }
+
+    if (query === queryInput) {
+      return;
+    }
+    // setQuery(queryInput);
+    history.push({ ...location, search: `query=${queryInput}` });
+    e.target.elements.query.value = "";
   };
+
+  useEffect(() => {
+    if (!query) return;
+    fetchMovies(query).then(setMovies);
+  }, [query]);
+
   return (
     <>
       <header className={s.Searchbar}>
         <form className={s.SearchForm} onSubmit={handleSubmit}>
-          <button type="submit" className={s.SearchFormButton}>
+          <input className={s.SearchFormInput} name="query" />
+          <button className={s.SearchFormButton} type="submit">
             <ImSearch style={{ marginRight: 8 }} />
             <span className={s.SearchFormButtonLabel}>Search</span>
           </button>
-
-          <input
-            className={s.SearchFormInput}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search movies"
-            onChange={handleInputChange}
-            value={searchQuery}
-          />
         </form>
       </header>
       {movies && (
         <ul>
-          {movies.map(({ original_title, id }) => (
-            <li className={s.listItem} key={id}>
+          {movies.map((movie) => (
+            <li className={s.listItem} key={movie.id}>
+              {/* <Link to={`${url}/${movie.id}`}>{movie.title}</Link> */}
               <Link
                 to={{
-                  pathname: `${url}/${slugify(`${original_title} ${id}`, {
-                    lower: true,
-                  })}`,
-                  state: { from: location },
+                  pathname: `${url}/${movie.id}`,
+                  state: { params: `query=${query}` },
                 }}
               >
-                {original_title}
+                {movie.title}
               </Link>
             </li>
           ))}

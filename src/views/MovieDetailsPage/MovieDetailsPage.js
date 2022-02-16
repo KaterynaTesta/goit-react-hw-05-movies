@@ -2,80 +2,90 @@ import {
   NavLink,
   useParams,
   useRouteMatch,
-  useLocation,
   Route,
+  useLocation,
 } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { getMovieDetails } from "../../services/movies-api";
+import { useState, useEffect, useRef } from "react";
+import { fetchMovieInfo } from "../../services/movies-api";
 import Cast from "../../Components/Cast/Cast";
-import Reviews from "../../Components/Reviews/Reviews";
+import ReviewsView from "../../Components/Reviews/Reviews";
 import GoBackBtn from "../../Components/GoBackBtn/GoBackBtn";
 import s from "./MoviesDetailsPage.module.css";
+// import MoviesView from "../MoviesPage";
 export default function MovieDetailsPage() {
-  const { slug } = useParams();
-  const movieId = slug.match(/[a-z0-9]+$/)[0];
-  const [movie, setMovie] = useState("");
-  const { original_title, poster_path, vote_average, genres, overview } = movie;
-  // const IMG_PATH = "https://image.tmdb.org/t/p/original";
+  const [movie, setMovie] = useState(null);
+  const { movieId } = useParams();
   const { url, path } = useRouteMatch();
+  const routerState = useRef(null);
   const location = useLocation();
+  // const history = useHistory();
 
   useEffect(() => {
-    getMovieDetails(movieId).then((results) => setMovie(results));
+    if (routerState.current) return;
+    routerState.current = location.state;
+  }, [location.state]);
+
+  useEffect(() => {
+    fetchMovieInfo(movieId).then(setMovie);
   }, [movieId]);
 
-  return (
-    <div className={s.page}>
-      <h1 className={s.header}>{original_title}</h1>
-      <GoBackBtn />
-      <div className={s.wrapper}>
-        <img
-          className={s.img}
-          src={poster_path && `https://image.tmdb.org/t/p/w342${poster_path}`}
-          alt=""
-        />
-        <div className={s.rightSide}>
-          <h2>Rating: {vote_average}</h2>
-          <div className={s.genres}>
-            <h2>Genres: </h2>
-            {genres &&
-              genres.map((genre) => (
-                <h2 key={genre.id} className={s.genresItem}>
-                  {genre.name}
-                </h2>
-              ))}
-          </div>
-          <h3>Overview: {overview}</h3>
-        </div>
-      </div>
-      <NavLink
-        className={s.link}
-        activeClassName={s.activeLink}
-        to={{
-          pathname: `${url}/cast`,
-          state: { from: location.state.from },
-        }}
-      >
-        Cast
-      </NavLink>
-      <NavLink
-        className={s.link}
-        activeClassName={s.activeLink}
-        exact
-        to={{
-          pathname: `${url}/reviews`,
-          state: { from: location.state.from },
-        }}
-      >
-        Reviews
-      </NavLink>
+  // const handleGoBack = () => {
+  //   const url = routerState.current
+  //     ? `/movies?${routerState.current?.params}`
+  //     : "/movies";
+  //   history.push(url);
+  // };
 
+  return (
+    <>
+      <GoBackBtn />
+      {movie && (
+        <>
+          <div>
+            <img
+              className={s.img}
+              src={
+                movie.backdrop_path
+                  ? `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`
+                  : "Not found"
+              }
+              alt={movie.title}
+            />
+            <div>
+              <h2>
+                {movie.title} ({movie.release_date.substring(0, 4)})
+              </h2>
+              <p>User Score {movie.vote_average}</p>
+              <h3>Overview</h3>
+              <p>{movie.overview}</p>
+              <h3>Genres</h3>
+              <ul>
+                {movie.genres.map((genre) => {
+                  return <li key={genre.id}>{genre.name}</li>;
+                })}
+              </ul>
+            </div>
+          </div>
+          <hr />
+          <ul>
+            Additional information
+            <li>
+              <NavLink to={`${url}/cast`}>Cast</NavLink>
+            </li>
+            <li>
+              <NavLink to={`${url}/reviews`}>Reviews</NavLink>
+            </li>
+          </ul>
+          <hr />
+        </>
+      )}
       <Route path={`${path}/cast`}>
-        <Cast />
+        {movie && <Cast movieId={movie.id} />}
       </Route>
-      <Route exact path={`${path}/reviews`}>
-        <Reviews />
+
+      <Route path={`${path}/reviews`}>
+        {movie && <ReviewsView movieId={movie.id} />}
       </Route>
-    </div>
+    </>
   );
 }

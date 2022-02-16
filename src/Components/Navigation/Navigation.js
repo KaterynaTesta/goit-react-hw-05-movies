@@ -1,27 +1,18 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import styles from "./Navigation.module.css";
-
-export default function Navigation() {
-  const location = useLocation();
+const Navigation = () => {
   return (
     <nav>
       <NavLink
-        style={{ marginRight: "15px" }}
         exact
-        to={{
-          pathname: "/",
-          state: { from: location },
-        }}
+        to="/"
         className={styles.link}
         activeClassName={styles.activeLink}
       >
         Home
       </NavLink>
       <NavLink
-        to={{
-          pathname: "/movies",
-          state: { from: location },
-        }}
+        to="/movies"
         className={styles.link}
         activeClassName={styles.activeLink}
       >
@@ -29,24 +20,6 @@ export default function Navigation() {
       </NavLink>
     </nav>
   );
-}
-// const Navigation = () => (
-//   <nav>
-//     <NavLink
-//       exact
-//       to="/"
-//       className={styles.link}
-//       activeClassName={styles.activeLink}
-//     >
-//       Home
-//     </NavLink>
-//     <NavLink
-//       to="/movies"
-//       className={styles.link}
-//       activeClassName={styles.activeLink}
-//     >
-//       Movies
-//     </NavLink>
-//   </nav>
-// );
-// export default Navigation;
+};
+
+export default Navigation;
